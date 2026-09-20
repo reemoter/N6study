@@ -63,7 +63,7 @@ all: main-build
 main-build: Ondevice_AppliNonSecure.elf secondary-outputs
 
 dependents:
-	-cd C:/Users/wbeet/Desktop/Project/ST/Ondevice/Ondevice/AppliSecure/Debug && $(MAKE) clean all
+	-cd C:/Users/wbeet/Desktop/Project/ST/Ondevice/Ondevice/AppliSecure/Debug && $(MAKE) all
 
 # Tool invocations
 Ondevice_AppliNonSecure.elf Ondevice_AppliNonSecure.map: $(OBJS) $(USER_OBJS) C:/Users/wbeet/Desktop/Project/ST/Ondevice/Ondevice/AppliSecure/Debug/Ondevice_AppliSecure.elf C:\Users\wbeet\Desktop\Project\ST\Ondevice\Ondevice\AppliNonSecure\STM32N657X0HXQ_LRUN.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
