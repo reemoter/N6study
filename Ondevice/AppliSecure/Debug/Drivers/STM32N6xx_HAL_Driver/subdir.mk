@@ -14,7 +14,8 @@ C:/Users/wbeet/Desktop/Project/ST/Ondevice/Ondevice/Drivers/STM32N6xx_HAL_Driver
 C:/Users/wbeet/Desktop/Project/ST/Ondevice/Ondevice/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_pwr.c \
 C:/Users/wbeet/Desktop/Project/ST/Ondevice/Ondevice/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_pwr_ex.c \
 C:/Users/wbeet/Desktop/Project/ST/Ondevice/Ondevice/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_rcc.c \
-C:/Users/wbeet/Desktop/Project/ST/Ondevice/Ondevice/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_rcc_ex.c 
+C:/Users/wbeet/Desktop/Project/ST/Ondevice/Ondevice/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_rcc_ex.c \
+C:/Users/wbeet/Desktop/Project/ST/Ondevice/Ondevice/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_rif.c
 
 OBJS += \
 ./Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal.o \
@@ -26,7 +27,8 @@ OBJS += \
 ./Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_pwr.o \
 ./Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_pwr_ex.o \
 ./Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_rcc.o \
-./Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_rcc_ex.o 
+./Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_rcc_ex.o \
+./Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_rif.o
 
 C_DEPS += \
 ./Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal.d \
@@ -38,7 +40,8 @@ C_DEPS += \
 ./Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_pwr.d \
 ./Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_pwr_ex.d \
 ./Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_rcc.d \
-./Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_rcc_ex.d 
+./Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_rcc_ex.d \
+./Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_rif.d
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -61,6 +64,9 @@ Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_pwr_ex.o: C:/Users/wbeet/Desktop/Proj
 Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_rcc.o: C:/Users/wbeet/Desktop/Project/ST/Ondevice/Ondevice/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_rcc.c Drivers/STM32N6xx_HAL_Driver/subdir.mk
 	arm-none-eabi-gcc "$<" -mcpu=cortex-m55 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32N657xx -c -I../Core/Inc -I../../Secure_nsclib -I../../Drivers/STM32N6xx_HAL_Driver/Inc -I../../Drivers/CMSIS/Device/ST/STM32N6xx/Include -I../../Drivers/STM32N6xx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -mcmse -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "$@"
 Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_rcc_ex.o: C:/Users/wbeet/Desktop/Project/ST/Ondevice/Ondevice/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_rcc_ex.c Drivers/STM32N6xx_HAL_Driver/subdir.mk
+	arm-none-eabi-gcc "$<" -mcpu=cortex-m55 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32N657xx -c -I../Core/Inc -I../../Secure_nsclib -I../../Drivers/STM32N6xx_HAL_Driver/Inc -I../../Drivers/CMSIS/Device/ST/STM32N6xx/Include -I../../Drivers/STM32N6xx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -mcmse -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "$@"
+
+Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_rif.o: C:/Users/wbeet/Desktop/Project/ST/Ondevice/Ondevice/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_rif.c Drivers/STM32N6xx_HAL_Driver/subdir.mk
 	arm-none-eabi-gcc "$<" -mcpu=cortex-m55 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32N657xx -c -I../Core/Inc -I../../Secure_nsclib -I../../Drivers/STM32N6xx_HAL_Driver/Inc -I../../Drivers/CMSIS/Device/ST/STM32N6xx/Include -I../../Drivers/STM32N6xx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -mcmse -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "$@"
 
 clean: clean-Drivers-2f-STM32N6xx_HAL_Driver

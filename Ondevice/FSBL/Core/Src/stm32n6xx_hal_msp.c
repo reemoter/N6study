@@ -68,7 +68,15 @@ void HAL_MspInit(void)
 
   /* System interrupt init*/
 
+  HAL_PWREx_EnableVddIO2();
+
+  HAL_PWREx_EnableVddIO3();
+
   /* USER CODE BEGIN MspInit 1 */
+
+  /* The DK's XSPI2 NOR I/O bank (VDDIO3) operates at 1.8 V. */
+  __HAL_RCC_PWR_CLK_ENABLE();
+  HAL_PWREx_ConfigVddIORange(PWR_VDDIO3, PWR_VDDIO_RANGE_1V8);
 
   /* USER CODE END MspInit 1 */
 }

@@ -1,0 +1,5 @@
+../Core/Src/fsbl_app.c:8:17:read_u32_le	1
+../Core/Src/fsbl_app.c:14:17:valid_image	18
+../Core/Src/fsbl_app.c:58:26:copy_image	3
+../Core/Src/fsbl_app.c:72:16:FSBL_LoadApplications	7
+../Core/Src/fsbl_app.c:106:6:FSBL_JumpToSecure	6

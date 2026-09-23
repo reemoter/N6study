@@ -25,7 +25,9 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_exti.h \
  ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_pwr.h \
  ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_pwr_ex.h \
- ../Core/Inc/gpio.h ../Core/Inc/main.h
+ ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_xspi.h \
+ ../Core/Inc/gpio.h ../Core/Inc/main.h ../Core/Inc/xspi.h \
+ ../Core/Inc/nor_flash.h ../Core/Inc/fsbl_app.h
 ../Core/Inc/main.h:
 ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal.h:
 ../Core/Inc/stm32n6xx_hal_conf.h:
@@ -53,5 +55,9 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_exti.h:
 ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_pwr.h:
 ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_pwr_ex.h:
+../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_xspi.h:
 ../Core/Inc/gpio.h:
 ../Core/Inc/main.h:
+../Core/Inc/xspi.h:
+../Core/Inc/nor_flash.h:
+../Core/Inc/fsbl_app.h:

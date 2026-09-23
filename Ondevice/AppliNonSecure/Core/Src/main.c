@@ -43,6 +43,8 @@
 
 /* USER CODE BEGIN PV */
 
+volatile uint32_t nonsecure_boot_counter = 0U;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -64,7 +66,8 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
 	SCB_EnableICache();
-	SCB_EnableDCache();
+	/* Keep D-Cache disabled during the first Secure-to-Non-secure handoff test
+	   so the debugger can observe nonsecure_boot_counter in physical SRAM. */
 
   /* USER CODE END 1 */
 
@@ -88,6 +91,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    nonsecure_boot_counter++;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

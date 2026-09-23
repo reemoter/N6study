@@ -84,7 +84,11 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-
+  secure_boot_stage = 0xE1U;
+  secure_fault_cfsr = SCB->CFSR;
+  secure_fault_hfsr = SCB->HFSR;
+  secure_fault_sfsr = SCB->SFSR;
+  secure_fault_sfar = SCB->SFAR;
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
@@ -99,7 +103,8 @@ void HardFault_Handler(void)
 void MemManage_Handler(void)
 {
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
-
+  secure_boot_stage = 0xE2U;
+  secure_fault_cfsr = SCB->CFSR;
   /* USER CODE END MemoryManagement_IRQn 0 */
   while (1)
   {
@@ -114,7 +119,8 @@ void MemManage_Handler(void)
 void BusFault_Handler(void)
 {
   /* USER CODE BEGIN BusFault_IRQn 0 */
-
+  secure_boot_stage = 0xE3U;
+  secure_fault_cfsr = SCB->CFSR;
   /* USER CODE END BusFault_IRQn 0 */
   while (1)
   {
@@ -129,7 +135,8 @@ void BusFault_Handler(void)
 void UsageFault_Handler(void)
 {
   /* USER CODE BEGIN UsageFault_IRQn 0 */
-
+  secure_boot_stage = 0xE4U;
+  secure_fault_cfsr = SCB->CFSR;
   /* USER CODE END UsageFault_IRQn 0 */
   while (1)
   {
@@ -144,7 +151,9 @@ void UsageFault_Handler(void)
 void SecureFault_Handler(void)
 {
   /* USER CODE BEGIN SecureFault_IRQn 0 */
-
+  secure_boot_stage = 0xE5U;
+  secure_fault_sfsr = SCB->SFSR;
+  secure_fault_sfar = SCB->SFAR;
   /* USER CODE END SecureFault_IRQn 0 */
   while (1)
   {

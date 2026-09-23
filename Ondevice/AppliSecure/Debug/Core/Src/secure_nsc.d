@@ -19,6 +19,7 @@ Core/Src/secure_nsc.o: ../Core/Src/secure_nsc.c ../Core/Inc/main.h \
  ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_rcc_ex.h \
  ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_gpio.h \
  ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_gpio_ex.h \
+ ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_rif.h \
  ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_dma.h \
  ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_dma_ex.h \
  ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_cortex.h \
@@ -47,6 +48,7 @@ Core/Src/secure_nsc.o: ../Core/Src/secure_nsc.c ../Core/Inc/main.h \
 ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_rcc_ex.h:
 ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_gpio.h:
 ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_gpio_ex.h:
+../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_rif.h:
 ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_dma.h:
 ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_dma_ex.h:
 ../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_hal_cortex.h:

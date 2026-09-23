@@ -72,6 +72,12 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 
+extern volatile uint32_t secure_boot_stage;
+extern volatile uint32_t secure_fault_cfsr;
+extern volatile uint32_t secure_fault_hfsr;
+extern volatile uint32_t secure_fault_sfsr;
+extern volatile uint32_t secure_fault_sfar;
+
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

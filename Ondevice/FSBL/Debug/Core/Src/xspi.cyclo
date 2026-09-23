@@ -1,0 +1,4 @@
+../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_ll_bus.h:1407:22:LL_AHB4_GRP1_EnableClock	1
+../../Drivers/STM32N6xx_HAL_Driver/Inc/stm32n6xx_ll_bus.h:1755:22:LL_AHB5_GRP1_EnableClock	1
+../Core/Src/xspi.c:5:6:MX_XSPI2_Init	3
+../Core/Src/xspi.c:40:6:HAL_XSPI_MspInit	3

@@ -19,6 +19,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "gpio.h"
+#include "xspi.h"
+#include "nor_flash.h"
+#include "fsbl_app.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -46,6 +49,9 @@
 
 volatile uint32_t debug_counter = 0;
 volatile uint32_t debug_value = 0x12345678;
+volatile HAL_StatusTypeDef nor_read_status = HAL_ERROR;
+volatile uint8_t nor_header[16];
+volatile uint32_t nor_header_valid = 0U;
 
 /* USER CODE END PV */
 
@@ -89,7 +95,31 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_XSPI2_Init();
   /* USER CODE BEGIN 2 */
+  uint8_t header[sizeof(nor_header)];
+  nor_read_status = NOR_Read(0U, header, sizeof(header));
+  if (nor_read_status == HAL_OK)
+  {
+    for (uint32_t i = 0; i < sizeof(header); ++i)
+    {
+      nor_header[i] = header[i];
+    }
+    /* STM32N6 image header magic at external NOR offset zero. */
+    nor_header_valid = (header[0] == 'S') && (header[1] == 'T') &&
+                       (header[2] == 'M') && (header[3] == '2');
+  }
+  /* Keep the LED on only when the external NOR boot header was read. */
+  if (nor_header_valid != 0U)
+  {
+    HAL_GPIO_WritePin(GPIOO, GPIO_PIN_1, SET);
+    /* Only transfer control after both signed images passed the layout checks. */
+    fsbl_app_status = FSBL_LoadApplications();
+    if (fsbl_app_status == FSBL_APP_READY)
+    {
+      FSBL_JumpToSecure();
+    }
+  }
 
   /* USER CODE END 2 */
 
@@ -97,13 +127,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  debug_counter++;
 
-	  if (debug_counter >= 1000000U)
-	  {
-		  debug_counter = 0U;
-		  debug_value++;
-	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

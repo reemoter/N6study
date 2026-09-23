@@ -46,10 +46,17 @@
 
 /* USER CODE BEGIN PV */
 
+volatile uint32_t secure_boot_stage = 0U;
+volatile uint32_t secure_fault_cfsr = 0U;
+volatile uint32_t secure_fault_hfsr = 0U;
+volatile uint32_t secure_fault_sfsr = 0U;
+volatile uint32_t secure_fault_sfar = 0U;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 static void NonSecure_Init(void);
+static void SystemIsolation_Config(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -73,6 +80,8 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
   HAL_Init();
 
+  secure_boot_stage = 1U;
+
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -82,6 +91,8 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  SystemIsolation_Config();
+  secure_boot_stage = 2U;
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -90,6 +101,7 @@ int main(void)
   /* in order to avoid wake-up from sleep mode entered by non-secure      */
   /* The Secure SysTick shall be resumed on non-secure callable functions */
   HAL_SuspendTick();
+  secure_boot_stage = 3U;
 
   /*************** Setup and jump to non-secure *******************************/
 
@@ -119,15 +131,68 @@ static void NonSecure_Init(void)
   funcptr_NS NonSecure_ResetHandler;
 
   SCB_NS->VTOR = VTOR_TABLE_NS_START_ADDR;
+  secure_boot_stage = 4U;
 
   /* Set non-secure main stack (MSP_NS) */
   __TZ_set_MSP_NS((*(uint32_t *)VTOR_TABLE_NS_START_ADDR));
+  secure_boot_stage = 5U;
 
   /* Get non-secure reset handler */
   NonSecure_ResetHandler = (funcptr_NS)(*((uint32_t *)((VTOR_TABLE_NS_START_ADDR) + 4U)));
+  secure_boot_stage = 6U;
 
   /* Start non-secure state software application */
   NonSecure_ResetHandler();
+}
+
+/**
+  * @brief RIF Initialization Function
+  * @param None
+  * @retval None
+  */
+  static void SystemIsolation_Config(void)
+{
+
+/* USER CODE BEGIN RIF_Init 0 */
+
+/* USER CODE END RIF_Init 0 */
+
+  /* set all required IPs as secure privileged */
+  __HAL_RCC_RIFSC_CLK_ENABLE();
+
+  /* RIF-Aware IPs Config */
+
+  /* set up GPIO configuration */
+  HAL_GPIO_ConfigPinAttributes(GPIOO,GPIO_PIN_1,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
+
+/* USER CODE BEGIN RIF_Init 1 */
+
+  /* Match the STM32N6570-DK isolation LRUN memory split: SRAM2 is
+     non-secure, while SRAM1 and FLEXRAM remain secure. */
+  RISAF_BaseRegionConfig_t region = {0};
+  __HAL_RCC_RISAF_CLK_ENABLE();
+  region.StartAddress = 0x0000U;
+  region.Filtering = RISAF_FILTER_ENABLE;
+  region.ReadWhitelist = 0xFFU;
+  region.WriteWhitelist = 0xFFU;
+  region.PrivWhitelist = RIF_CID_NONE;
+
+  region.EndAddress = 0xFFFFFU;
+  region.Secure = RIF_ATTRIBUTE_NSEC;
+  HAL_RIF_RISAF_ConfigBaseRegion(RISAF3, RISAF_REGION_1, &region);
+
+  region.EndAddress = 0x9BFFFU;
+  region.Secure = RIF_ATTRIBUTE_SEC;
+  HAL_RIF_RISAF_ConfigBaseRegion(RISAF2, RISAF_REGION_1, &region);
+
+  region.EndAddress = 0x63FFFU;
+  HAL_RIF_RISAF_ConfigBaseRegion(RISAF7, RISAF_REGION_1, &region);
+
+/* USER CODE END RIF_Init 1 */
+/* USER CODE BEGIN RIF_Init 2 */
+
+/* USER CODE END RIF_Init 2 */
+
 }
 
 /* USER CODE BEGIN 4 */
