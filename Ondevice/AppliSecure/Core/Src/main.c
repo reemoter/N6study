@@ -95,6 +95,18 @@ int main(void)
   secure_boot_stage = 2U;
   /* USER CODE BEGIN 2 */
 
+  /* Prepare DK LED2 (PG10) for the non-secure boot heartbeat. */
+  GPIO_InitTypeDef heartbeat_gpio = {0};
+  __HAL_RCC_GPIOG_CLK_ENABLE();
+  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_10, GPIO_PIN_RESET);
+  heartbeat_gpio.Pin = GPIO_PIN_10;
+  heartbeat_gpio.Mode = GPIO_MODE_OUTPUT_PP;
+  heartbeat_gpio.Pull = GPIO_NOPULL;
+  heartbeat_gpio.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOG, &heartbeat_gpio);
+  HAL_GPIO_ConfigPinAttributes(GPIOG, GPIO_PIN_10,
+                              GPIO_PIN_NSEC | GPIO_PIN_NPRIV);
+
   /* USER CODE END 2 */
 
   /* Secure SysTick should rather be suspended before calling non-secure  */

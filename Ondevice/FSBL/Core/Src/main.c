@@ -112,7 +112,7 @@ int main(void)
   /* Keep the LED on only when the external NOR boot header was read. */
   if (nor_header_valid != 0U)
   {
-    HAL_GPIO_WritePin(GPIOO, GPIO_PIN_1, SET);
+    HAL_GPIO_WritePin(GPIOO, GPIO_PIN_1, GPIO_PIN_SET);
     /* Only transfer control after both signed images passed the layout checks. */
     fsbl_app_status = FSBL_LoadApplications();
     if (fsbl_app_status == FSBL_APP_READY)

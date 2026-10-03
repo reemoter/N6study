@@ -85,6 +85,8 @@ int main(void)
   /* Initialize all configured peripherals */
   /* USER CODE BEGIN 2 */
 
+  uint32_t heartbeat_tick = HAL_GetTick();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -92,6 +94,13 @@ int main(void)
   while (1)
   {
     nonsecure_boot_counter++;
+    /* LED2 toggles only after non-secure startup and HAL_Init succeeded. */
+    uint32_t now = HAL_GetTick();
+    if ((uint32_t)(now - heartbeat_tick) >= 500U)
+    {
+      heartbeat_tick = now;
+      HAL_GPIO_TogglePin(GPIOG, GPIO_PIN_10);
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

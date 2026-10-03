@@ -39,16 +39,19 @@
 //-------- <<< Use Configuration Wizard in Context Menu >>> -----------------
 */
 /* USER CODE BEGIN 0 */
+/* GNU linker symbols for the Secure Gateway veneer region. */
+extern uint32_t _sNSCVeneer;
+extern uint32_t _eNSCVeneer;
 /*
 // <e>Initialize Security Attribution Unit (SAU) CTRL register
 */
-#define SAU_INIT_CTRL          0
+#define SAU_INIT_CTRL          1
 
 /*
 //   <q> Enable SAU
 //   <i> Value for SAU->CTRL register bit ENABLE
 */
-#define SAU_INIT_CTRL_ENABLE   0
+#define SAU_INIT_CTRL_ENABLE   1
 
 /*
 //   <o> When SAU is disabled
@@ -76,24 +79,24 @@
 //   <e>Initialize SAU Region 0
 //   <i> Setup SAU Region 0 memory attributes
 */
-#define SAU_INIT_REGION0    0
+#define SAU_INIT_REGION0    1
 
 /*
 //     <o>Start Address <0-0xFFFFFFE0>
 */
-#define SAU_INIT_START0     0x00000000      /* start address of SAU region 0 */
+#define SAU_INIT_START0     ((uint32_t) &_sNSCVeneer)
 
 /*
 //     <o>End Address <0x1F-0xFFFFFFFF>
 */
-#define SAU_INIT_END0       0x00000000      /* end address of SAU region 0 */
+#define SAU_INIT_END0       ((uint32_t) &_eNSCVeneer)
 
 /*
 //     <o>Region is
 //         <0=>Non-Secure
 //         <1=>Secure, Non-Secure Callable
 */
-#define SAU_INIT_NSC0       0
+#define SAU_INIT_NSC0       1
 /*
 //   </e>
 */
@@ -102,16 +105,16 @@
 //   <e>Initialize SAU Region 1
 //   <i> Setup SAU Region 1 memory attributes
 */
-#define SAU_INIT_REGION1    0
+#define SAU_INIT_REGION1    1
 
 /*
 //     <o>Start Address <0-0xFFFFFFE0>
 */
-#define SAU_INIT_START1       0x00000000      /* start address of SAU region 1 */
+#define SAU_INIT_START1       0x24100000      /* Non-secure SRAM2 alias */
 /*
 //     <o>End Address <0x1F-0xFFFFFFFF>
 */
-#define SAU_INIT_END1       0x00000000      /* end address of SAU region 1 */
+#define SAU_INIT_END1       0x241FFFFF
 /*
 //     <o>Region is
 //         <0=>Non-Secure
@@ -126,17 +129,17 @@
 //   <e>Initialize SAU Region 2
 //   <i> Setup SAU Region 2 memory attributes
 */
-#define SAU_INIT_REGION2    0
+#define SAU_INIT_REGION2    1
 
 /*
 //     <o>Start Address <0-0xFFFFFFE0>
 */
-#define SAU_INIT_START2     0x00000000      /* start address of SAU region 2 */
+#define SAU_INIT_START2     0x40000000      /* Non-secure peripheral alias */
 
 /*
 //     <o>End Address <0x1F-0xFFFFFFFF>
 */
-#define SAU_INIT_END2       0x00000000      /* end address of SAU region 2 */
+#define SAU_INIT_END2       0x4FFFFFFF
 
 /*
 //     <o>Region is
@@ -686,6 +689,8 @@
 __STATIC_INLINE void TZ_SAU_Setup (void)
 {
 
+  __DSB();
+
 #if defined (__SAUREGION_PRESENT) && (__SAUREGION_PRESENT == 1U)
 
   #if defined (SAU_INIT_REGION0) && (SAU_INIT_REGION0 == 1U)
@@ -728,6 +733,9 @@ __STATIC_INLINE void TZ_SAU_Setup (void)
     SAU->CTRL = ((SAU_INIT_CTRL_ENABLE << SAU_CTRL_ENABLE_Pos) & SAU_CTRL_ENABLE_Msk) |
                 ((SAU_INIT_CTRL_ALLNS  << SAU_CTRL_ALLNS_Pos)  & SAU_CTRL_ALLNS_Msk)   ;
   #endif
+
+  __DSB();
+  __ISB();
 
   #if defined (SCB_CSR_AIRCR_INIT) && (SCB_CSR_AIRCR_INIT == 1U)
     SCB->SCR   = (SCB->SCR   & ~(SCB_SCR_SLEEPDEEPS_Msk    )) |

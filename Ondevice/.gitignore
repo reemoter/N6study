@@ -1,0 +1,6 @@
+# CubeIDE regenerates these; source/configuration and verified baseline are tracked.
+**/Debug/
+**/Release/
+/Build/
+/.metadata/
+*.log

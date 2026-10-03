@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "provenance": "hardware-validated-foundation-2026-10-03",
+  "toolchain": "14.3.1",
+  "images": [
+    {
+      "kind": "FSBL",
+      "file": "FSBL-trusted.bin",
+      "size": 32576,
+      "msp": "0x34200000",
+      "reset": "0x34181C65",
+      "sha256": "18BF09A45D75934F5C1379C711F0D504F52740A89FA82FD085381C43E1BE6A5F",
+      "address": "0x70000000"
+    },
+    {
+      "kind": "Secure",
+      "file": "Secure-trusted.bin",
+      "size": 6272,
+      "msp": "0x34100000",
+      "reset": "0x34000FD9",
+      "sha256": "C104D3E281B34E7ECEF829ACB05D4A88BC1E226585079CB38FB6D996EA5D78C6",
+      "address": "0x70100000"
+    },
+    {
+      "kind": "NonSecure",
+      "file": "NonSecure-trusted.bin",
+      "size": 3232,
+      "msp": "0x24200000",
+      "reset": "0x241008A5",
+      "sha256": "DAF7165F238529570679D556182984274D31006A7789AFFA3AD354C91DBB6748",
+      "address": "0x70180000"
+    }
+  ]
+}

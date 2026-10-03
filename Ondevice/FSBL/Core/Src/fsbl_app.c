@@ -4,23 +4,19 @@
 volatile FSBL_AppStatus fsbl_app_status = FSBL_APP_NOT_STARTED;
 volatile uint32_t fsbl_secure_reset_vector = 0U;
 volatile uint32_t fsbl_nonsecure_reset_vector = 0U;
+volatile uint32_t fsbl_secure_copy_size = 0U;
+volatile uint32_t fsbl_nonsecure_copy_size = 0U;
 
-static uint32_t read_u32_le(const uint8_t *bytes)
+static uint32_t valid_image(uint32_t flash_offset, uint32_t secure,
+                            FSBL_ImageInfo *image)
 {
-  return (uint32_t)bytes[0] | ((uint32_t)bytes[1] << 8) |
-         ((uint32_t)bytes[2] << 16) | ((uint32_t)bytes[3] << 24);
-}
-
-static uint32_t valid_image(uint32_t flash_offset, uint32_t secure)
-{
-  uint8_t magic[4];
+  uint8_t header[FSBL_IMAGE_PREFIX_SIZE];
   uint8_t vectors[8];
-  uint32_t stack;
-  uint32_t reset;
+  uint32_t capacity = secure ? FSBL_SECURE_IMAGE_CAPACITY :
+                               FSBL_NONSECURE_IMAGE_CAPACITY;
 
-  if ((NOR_Read(flash_offset, magic, sizeof(magic)) != HAL_OK) ||
-      (magic[0] != 'S') || (magic[1] != 'T') ||
-      (magic[2] != 'M') || (magic[3] != '2'))
+  if ((NOR_Read(flash_offset, header, sizeof(header)) != HAL_OK) ||
+      (FSBL_ParseImageHeader(header, capacity, image) == 0U))
   {
     return 1U;
   }
@@ -30,24 +26,20 @@ static uint32_t valid_image(uint32_t flash_offset, uint32_t secure)
     return 2U;
   }
 
-  stack = read_u32_le(vectors);
-  reset = read_u32_le(vectors + 4U);
   if (secure != 0U)
   {
-    fsbl_secure_reset_vector = reset;
-    if ((stack < 0x34064000U) || (stack > 0x34100000U) ||
-        (reset < (0x34000000U + FSBL_IMAGE_HEADER_SIZE + 1U)) ||
-        (reset >= 0x34064000U) || ((reset & 1U) == 0U))
+    fsbl_secure_reset_vector = FSBL_ReadU32LE(vectors + 4U);
+    if (FSBL_ValidateImageVectors(vectors, 0x34000400U,
+                                 0x34064000U, 0x34100000U, image) == 0U)
     {
       return 2U;
     }
   }
   else
   {
-    fsbl_nonsecure_reset_vector = reset;
-    if ((stack < 0x24180000U) || (stack > 0x24200000U) ||
-        (reset < (0x24100000U + FSBL_IMAGE_HEADER_SIZE + 1U)) ||
-        (reset >= 0x24180000U) || ((reset & 1U) == 0U))
+    fsbl_nonsecure_reset_vector = FSBL_ReadU32LE(vectors + 4U);
+    if (FSBL_ValidateImageVectors(vectors, 0x24100400U,
+                                 0x24180000U, 0x24200000U, image) == 0U)
     {
       return 2U;
     }
@@ -55,33 +47,70 @@ static uint32_t valid_image(uint32_t flash_offset, uint32_t secure)
   return 0U;
 }
 
-static HAL_StatusTypeDef copy_image(uint32_t flash_offset, uint32_t ram_address)
+/* 0: verified, 1: read/copy error, 2: payload checksum mismatch. */
+static uint32_t copy_image(uint32_t flash_offset, uint32_t ram_address,
+                           const FSBL_ImageInfo *image)
 {
-  /* The initial LRUN test uses the same fixed 64-KiB copy size as ST's
-     reference template. Increase it only after checking both signed images. */
-  for (uint32_t offset = 0U; offset < FSBL_IMAGE_COPY_SIZE; offset += 256U)
+  uint8_t buffer[256];
+  uint32_t checksum = 0U;
+  for (uint32_t offset = 0U; offset < image->copy_size;)
   {
-    if (NOR_Read(flash_offset + offset, (uint8_t *)(ram_address + offset), 256U) != HAL_OK)
+    uint32_t count = image->copy_size - offset;
+    if (count > sizeof(buffer))
     {
-      return HAL_ERROR;
+      count = sizeof(buffer);
     }
+    if (NOR_Read(flash_offset + offset, buffer, count) != HAL_OK)
+    {
+      return 1U;
+    }
+    volatile uint8_t *destination = (volatile uint8_t *)(ram_address + offset);
+    for (uint32_t i = 0U; i < count; ++i)
+    {
+      destination[i] = buffer[i];
+    }
+    __DSB();
+    for (uint32_t i = 0U; i < count; ++i)
+    {
+      uint8_t value = destination[i];
+      if (value != buffer[i])
+      {
+        return 1U;
+      }
+      if (offset + i >= FSBL_IMAGE_PAYLOAD_OFFSET)
+      {
+        checksum += value;
+      }
+    }
+    offset += count;
   }
-  return HAL_OK;
+  if ((*(volatile uint32_t *)(ram_address + FSBL_IMAGE_HEADER_SIZE) != image->stack) ||
+      (*(volatile uint32_t *)(ram_address + FSBL_IMAGE_HEADER_SIZE + 4U) != image->entry))
+  {
+    return 1U;
+  }
+  return (checksum == image->checksum) ? 0U : 2U;
 }
 
 FSBL_AppStatus FSBL_LoadApplications(void)
 {
   uint32_t check;
+  FSBL_ImageInfo secure_image;
+  FSBL_ImageInfo nonsecure_image;
 
   fsbl_app_status = FSBL_APP_NOT_STARTED;
-  check = valid_image(FSBL_SECURE_FLASH_OFFSET, 1U);
+  fsbl_secure_copy_size = 0U;
+  fsbl_nonsecure_copy_size = 0U;
+  fsbl_secure_reset_vector = 0U;
+  fsbl_nonsecure_reset_vector = 0U;
+  check = valid_image(FSBL_SECURE_FLASH_OFFSET, 1U, &secure_image);
   if (check != 0U)
   {
     fsbl_app_status = (check == 1U) ? FSBL_APP_SECURE_HEADER_ERROR :
                                      FSBL_APP_SECURE_VECTOR_ERROR;
     return fsbl_app_status;
   }
-  check = valid_image(FSBL_NONSECURE_FLASH_OFFSET, 0U);
+  check = valid_image(FSBL_NONSECURE_FLASH_OFFSET, 0U, &nonsecure_image);
   if (check != 0U)
   {
     fsbl_app_status = (check == 1U) ? FSBL_APP_NONSECURE_HEADER_ERROR :
@@ -89,14 +118,23 @@ FSBL_AppStatus FSBL_LoadApplications(void)
     return fsbl_app_status;
   }
 
-  if (copy_image(FSBL_SECURE_FLASH_OFFSET, FSBL_SECURE_LOAD_ADDRESS) != HAL_OK)
+  fsbl_secure_copy_size = secure_image.copy_size;
+  fsbl_nonsecure_copy_size = nonsecure_image.copy_size;
+  /* Verify physical SRAM rather than dirty cache lines before the handoff. */
+  if ((SCB->CCR & SCB_CCR_DC_Msk) != 0U)
   {
-    fsbl_app_status = FSBL_APP_SECURE_COPY_ERROR;
+    SCB_DisableDCache();
+  }
+  check = copy_image(FSBL_SECURE_FLASH_OFFSET, FSBL_SECURE_LOAD_ADDRESS, &secure_image);
+  if (check != 0U)
+  {
+    fsbl_app_status = (check == 2U) ? FSBL_APP_SECURE_CHECKSUM_ERROR : FSBL_APP_SECURE_COPY_ERROR;
     return fsbl_app_status;
   }
-  if (copy_image(FSBL_NONSECURE_FLASH_OFFSET, FSBL_NONSECURE_LOAD_ADDRESS) != HAL_OK)
+  check = copy_image(FSBL_NONSECURE_FLASH_OFFSET, FSBL_NONSECURE_LOAD_ADDRESS, &nonsecure_image);
+  if (check != 0U)
   {
-    fsbl_app_status = FSBL_APP_NONSECURE_COPY_ERROR;
+    fsbl_app_status = (check == 2U) ? FSBL_APP_NONSECURE_CHECKSUM_ERROR : FSBL_APP_NONSECURE_COPY_ERROR;
     return fsbl_app_status;
   }
   fsbl_app_status = FSBL_APP_READY;
