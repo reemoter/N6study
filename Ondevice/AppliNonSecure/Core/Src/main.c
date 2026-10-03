@@ -96,7 +96,7 @@ int main(void)
     nonsecure_boot_counter++;
     /* LED2 toggles only after non-secure startup and HAL_Init succeeded. */
     uint32_t now = HAL_GetTick();
-    if ((uint32_t)(now - heartbeat_tick) >= 500U)
+    if ((uint32_t)(now - heartbeat_tick) >= 5000U)
     {
       heartbeat_tick = now;
       HAL_GPIO_TogglePin(GPIOG, GPIO_PIN_10);

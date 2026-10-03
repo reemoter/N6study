@@ -131,6 +131,38 @@ OTP/option bytes/mass erase는 스크립트에 포함하지 않는다.
 
 ## CubeIDE와 디버깅
 
+### IDE 메뉴에서 빌드·다운로드
+
+루트 프로젝트 `Ondevice`를 Import한 뒤 Refresh(F5)한다. `Tools`에 공유 External Tools
+설정 두 개가 있다. **Run → External Tools → External Tools Configurations → Program**에서
+선택하여 Run한다. Common 탭의 External Tools 즐겨찾기 설정으로 툴바 드롭다운에서도 실행한다.
+목록에 없으면 Tools의 `.launch` 파일을 우클릭하여 **Run As → External Tools**로 실행한다.
+
+| 메뉴 | 동작 |
+| --- | --- |
+| `Ondevice 01 Build and Verify` | 세 프로젝트 빌드, 이미지 생성, 생성 bundle 검증·손상 거부 테스트 |
+| `Ondevice 02 Program Apps` | 마지막 검증 bundle의 Secure·NS 기록과 검증; FSBL 유지 |
+
+1. NS 소스를 수정하고 저장한다. 01을 실행하고 Console의 `SUCCESS`를 확인한다.
+2. Debug/Programmer 연결을 종료한다. 전원 OFF → BOOT0=L/BOOT1=H → 전원 ON.
+3. 02를 실행하고 `Downloads verified`를 확인한다. 실행 전 보드 스위치를 자동 확인하지는 않는다.
+4. 독립 실행: 전원 OFF → L/L → 전원 ON. 디버깅: L/H에서 전원을 재인가하고
+   `Ondevice_FSBL NS Debug`를 사용한다.
+
+01과 02를 동시에 실행하지 않는다. 01은 디버거 ELF도 새로 생성하므로 02로 같은 bundle을
+기록한 뒤 NS 디버깅한다. 실패는 Console과 비정상 종료 코드로 전달된다.
+Console은 UTF-8이며 실행 로그는 `Build/logs`에 저장한다. 메뉴 설정을 갱신한 경우
+루트 프로젝트 Refresh 후 External Tools Configurations의 Arguments가
+`/d /c Tools\Run-CubeIDE-Tool.cmd BuildAndTest` (02는 `ProgramApps`)인지 확인한다.
+일반 CubeIDE 망치(Build) 버튼은 기존 IDE 빌드이며 이미지 패키징·NOR 기록을 수행하지 않는다.
+FSBL 변경 배포는 별도로 `Program-Firmware.ps1 -IncludeFsbl`을 사용한다.
+
+External Tools는 시스템 cmd를 통해 `Tools/Run-CubeIDE-Tool.cmd`를 실행한다.
+PowerShell 7은 PATH → Program Files → 현재 PC의 Codex runtime 순서로 찾는다.
+루트 프로젝트 이름 `Ondevice`가 workspace에 있어야 경로 변수가 해석된다.
+External Tools와 동일한 cmd 인자·작업 디렉터리로 실제 빌드·검증 및 다운로드 PlanOnly를
+확인했으며, CubeIDE 메뉴 실행은 IDE에서 확인한다.
+
 루트 및 FSBL/AppliSecure/AppliNonSecure의 `.project`를 Existing Projects로 가져온다.
 소스 링크를 새로 적용한 기존 workspace는 Refresh 후 Project Clean으로 makefile을 재생성한다.
 이 Clean은 빌드 산출물에 한정된다. CubeMX 코드 재생성은 수동 XSPI/보안 설정을 바꿀 수 있으니
@@ -139,6 +171,58 @@ OTP/option bytes/mass erase는 스크립트에 포함하지 않는다.
 CubeIDE에서 Secure를 먼저 빌드하고 NS를 빌드한다. FSBL Debug launch는 SRAM 시험용이다.
 새 FSBL은 SRAM 디버깅으로 확인한 후 NOR에 배포한다. CLI `-s` 성공 메시지만으로
 Reset Handler 진입을 확정하지 않는다. 확인은 실제 PC/진단값/LED로 한다.
+
+### 개발 부트에서 FSBL을 거쳐 NonSecure 디버깅
+
+정상 NOR 부팅 후 HOTPLUG/AP1 연결에서 Core ID 읽기가 실패하고, 개발 부트에서는 연결이
+복구되는 현상을 확인했다. 2026-10-04 보드에서 아래 구성으로 NonSecure main의 반복문에
+하드웨어 중단점을 걸어 정지하고, 중단점 해제 후 Resume하여 LED2 점멸이 재개되는 것을 확인했다.
+
+1. 디버깅 종료 → 전원 OFF → BOOT0=L/BOOT1=H → 전원 ON.
+2. FSBL 프로젝트 Refresh 후 `Ondevice_FSBL NS Debug` 설정을 실행한다.
+   `Build/Debug/FSBL/FSBL.elf`만 SRAM에 다운로드하고 NS ELF는 심볼만 불러온다.
+   자동 빌드는 끄며 NOR 내용은 변경하지 않는다.
+3. `FSBL_JumpToSecure`에서 정지하면 두 앱의 NOR 읽기/검증/복사가 완료된 상태다.
+4. Debugger Console에서 `hbreak *0x24100790`을 실행하고 Resume한다.
+   이 주소는 현재 script-built NS ELF의 `main`이다. 재빌드하면 `nm`/map으로 재확인한다.
+   SRAM 복사로 소프트웨어 중단점이 덮어써지는 것을 피하기 위해 하드웨어 중단점을 사용한다.
+5. NS main에서 정지하면 중단점을 해제하고 Resume하여 LED2 점멸을 확인한다.
+   `nonsecure_boot_counter`와 `uwTick`을 Expressions에서 관찰한다.
+
+이미 main 시작점을 지나 실행 중이라면 Suspend 후 Debugger Console에서
+`hbreak *0x241007e6`을 입력하고 Enter를 누른다. 현재 ELF의 카운터 증가 줄 주소다.
+`Hardware assisted breakpoint` 응답과 `info breakpoints` 목록을 확인한 뒤 Resume한다.
+이 주소도 재빌드 후에는 objdump/map으로 재확인한다. 재실행 시 상태가 달라졌다면
+Terminate 후 개발 부트에서 전원을 완전히 재인가하고 해당 구성을 목록에서 직접 선택한다.
+
+NS 심볼은 보드 NOR에 기록한 이미지와 일치해야 한다. 이 구성은 FSBL → Secure → NS 순서를
+유지하며, NS 단독 SRAM 다운로드와 다르다. 종료 후 독립 부팅은 전원 OFF → L/L → 전원 ON이다.
+
+### 실행 중인 NonSecure 앱에 연결 (현재 보드에서는 접속 실패)
+
+`AppliNonSecure/Ondevice_AppliNonSecure Attach.launch`는 정상 NOR 부팅 후 사용하는
+심볼 전용 연결 설정이다. reset strategy는 `None (no_reset)`, 이미지 다운로드와 자동 빌드는
+끄고, 연결 후 코어를 정지한다. PC/VTOR를 바꾸거나 `main`으로 다시 진입시키지 않는다.
+기존 `Debug` 설정은 NS 단독 다운로드용이므로 이 절차에서는 `Attach`를 선택한다.
+
+1. 마지막 `Build/bundle` 이미지를 다운로드하고 디버깅/Programmer 연결을 종료한다.
+2. 전원 OFF → BOOT0=L/BOOT1=L → 전원 ON, LED2 점멸을 확인한다.
+3. CubeIDE에서 AppliNonSecure를 Refresh(F5)하고 **Run → Debug Configurations →
+   STM32 C/C++ Application → Ondevice_AppliNonSecure Attach**를 선택한다.
+   목록에 없으면 프로젝트의 `.launch` 파일을 우클릭하여 **Debug As**로 실행한다.
+4. Main의 ELF는 `../Build/Debug/AppliNonSecure/NonSecure.elf`다. Startup에서
+   Download가 꺼지고 Load symbols만 켜졌는지, Reset은 None인지 확인한다.
+5. Debug로 연결한다. 정지 위치가 HAL 지연/인터럽트 내부일 수 있으며 정상이다.
+   `nonsecure_boot_counter`와 `uwTick`을 Expressions에 추가한다.
+6. `main.c`의 `nonsecure_boot_counter++` 줄에 중단점을 설정하고 Resume(F8)한다.
+   해당 줄에서 정지하면 NS 소스 중단점을 확인한 것이다. 중단점을 해제하고 Resume하면
+   LED2가 다시 점멸해야 한다. 다시 Suspend하여 카운터와 tick 증가를 확인한다.
+
+Attach는 **마지막 NOR 기록에 사용한 스크립트 빌드 ELF**를 읽는다. IDE의 `Debug/*.elf`와
+혼용하지 않는다. Build-Firmware를 재실행하면 ELF도 바뀌므로 새 bundle을 보드에 기록한 뒤
+연결해야 한다. 소스만 수정하고 기록하지 않았다면 소스 표시와 실행 코드가 달라질 수 있다.
+Attach 상태에서 Restart/Reset을 사용하면 정상 부팅 상태를 잃을 수 있다. 복구는 Terminate 후
+정상 부트 스위치 상태에서 전원 재인가로 한다. 하드웨어 Attach 동작은 보드에서 별도 확인한다.
 
 현재 검증 이미지의 진단 주소 (후속 빌드 후 map에서 재확인):
 
