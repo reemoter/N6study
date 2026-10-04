@@ -1,9 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    xspi.h
-  * @brief   This file contains all the function prototypes for
-  *          the xspi.c file
+  * @file    xspim.c
+  * @brief   This file provides code for the configuration
+  *          of the XSPIM instances.
   ******************************************************************************
   * @attention
   *
@@ -17,36 +17,31 @@
   ******************************************************************************
   */
 /* USER CODE END Header */
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __XSPI_H__
-#define __XSPI_H__
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+#include "xspim.h"
 
-/* USER CODE BEGIN Includes */
+/* USER CODE BEGIN 0 */
 
-/* USER CODE END Includes */
+/* USER CODE END 0 */
 
-extern XSPI_HandleTypeDef hxspi2;
+/* XSPIM init function */
+void MX_XSPIM_Init(void)
+{
 
-/* USER CODE BEGIN Private defines */
+  /* USER CODE BEGIN XSPIM_Init 0 */
 
-/* USER CODE END Private defines */
+  /* USER CODE END XSPIM_Init 0 */
 
-void MX_XSPI2_Init(void);
+  /* USER CODE BEGIN XSPIM_Init 1 */
 
-/* USER CODE BEGIN Prototypes */
+  /* USER CODE END XSPIM_Init 1 */
+  /* USER CODE BEGIN XSPIM_Init 2 */
 
-/* USER CODE END Prototypes */
+  /* USER CODE END XSPIM_Init 2 */
 
-#ifdef __cplusplus
 }
-#endif
 
-#endif /* __XSPI_H__ */
+/* USER CODE BEGIN 1 */
+
+/* USER CODE END 1 */
 

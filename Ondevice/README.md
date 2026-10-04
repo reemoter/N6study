@@ -4,6 +4,9 @@
 LRUN 기반 프로젝트다. 2026-10-03 전원 재인가만으로 LED2가 깜빡이는 독립 부팅을 검증했다.
 일반 기능 개발은 **AppliNonSecure**에서 시작한다.
 
+다른 PC에서 처음 환경을 구성할 때는 [새 Windows PC 설치 가이드](SETUP_WINDOWS.md)를 따른다.
+CubeMX 코드 생성과 수동 코드 유지 절차는 [코드 생성 가이드](CUBEMX_WORKFLOW.md)를 따른다.
+
 ## 부팅 순서와 빌드 순서는 다르다
 
 ```mermaid
@@ -142,6 +145,7 @@ OTP/option bytes/mass erase는 스크립트에 포함하지 않는다.
 | --- | --- |
 | `Ondevice 01 Build and Verify` | 세 프로젝트 빌드, 이미지 생성, 생성 bundle 검증·손상 거부 테스트 |
 | `Ondevice 02 Program Apps` | 마지막 검증 bundle의 Secure·NS 기록과 검증; FSBL 유지 |
+| `Ondevice 03 UART Log` | ST-LINK 가상 COM 포트 자동 탐색, 115200 8N1로 30초 로그 수신 |
 
 1. NS 소스를 수정하고 저장한다. 01을 실행하고 Console의 `SUCCESS`를 확인한다.
 2. Debug/Programmer 연결을 종료한다. 전원 OFF → BOOT0=L/BOOT1=H → 전원 ON.
@@ -156,6 +160,15 @@ Console은 UTF-8이며 실행 로그는 `Build/logs`에 저장한다. 메뉴 설
 `/d /c Tools\Run-CubeIDE-Tool.cmd BuildAndTest` (02는 `ProgramApps`)인지 확인한다.
 일반 CubeIDE 망치(Build) 버튼은 기존 IDE 빌드이며 이미지 패키징·NOR 기록을 수행하지 않는다.
 FSBL 변경 배포는 별도로 `Program-Firmware.ps1 -IncludeFsbl`을 사용한다.
+
+USART1은 PE5(TX)/PE6(RX)로 ST-LINK VCP에 연결된다. 앱은 부팅 시 `[NS] boot OK`를,
+1초마다 tick·루프 카운터·송신 오류 수를 출력한다. 보드 정상 L/L 부팅 후 03을 실행한다.
+부팅 메시지를 놓쳐도 주기 로그는 받을 수 있다. 다른 시리얼 터미널은 종료하고 03 종료 후
+다른 도구를 연다. 폴링 송신은 전송 동안 메인 루프를 잠시 점유하며 ISR에서는 호출하지 않는다.
+`app_log_tx_errors`와 `app_log_last_status`는 디버거 진단값이다. 로그는 CubeMX 전용 파일을
+수정하지 않고 `app_log.c`와 NS main의 USER CODE 훅으로 연결한다.
+2026-10-04 앱 기록·검증 후 사용자가 1초 주기 UART 로그 출력을 확인했다.
+다른 PC에서 포트를 직접 지정할 때는 `pwsh -File .\Tools\Read-UartLog.ps1 -Port COMx`를 사용한다.
 
 External Tools는 시스템 cmd를 통해 `Tools/Run-CubeIDE-Tool.cmd`를 실행한다.
 PowerShell 7은 PATH → Program Files → 현재 PC의 Codex runtime 순서로 찾는다.

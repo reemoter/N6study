@@ -18,10 +18,12 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "usart.h"
+#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "app_log.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -83,9 +85,12 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
   uint32_t heartbeat_tick = HAL_GetTick();
+  AppLog_Start();
 
   /* USER CODE END 2 */
 
@@ -96,7 +101,8 @@ int main(void)
     nonsecure_boot_counter++;
     /* LED2 toggles only after non-secure startup and HAL_Init succeeded. */
     uint32_t now = HAL_GetTick();
-    if ((uint32_t)(now - heartbeat_tick) >= 5000U)
+    AppLog_Poll(now, nonsecure_boot_counter);
+    if ((uint32_t)(now - heartbeat_tick) >= 7500U)
     {
       heartbeat_tick = now;
       HAL_GPIO_TogglePin(GPIOG, GPIO_PIN_10);

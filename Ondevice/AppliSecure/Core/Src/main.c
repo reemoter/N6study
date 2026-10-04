@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "secure_boot.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -80,10 +80,8 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
   HAL_Init();
 
-  secure_boot_stage = 1U;
-
   /* USER CODE BEGIN Init */
-
+  secure_boot_stage = 1U;
   /* USER CODE END Init */
 
   /* USER CODE BEGIN SysInit */
@@ -92,9 +90,8 @@ int main(void)
 
   /* Initialize all configured peripherals */
   SystemIsolation_Config();
-  secure_boot_stage = 2U;
   /* USER CODE BEGIN 2 */
-
+  secure_boot_stage = 2U;
   /* Prepare DK LED2 (PG10) for the non-secure boot heartbeat. */
   GPIO_InitTypeDef heartbeat_gpio = {0};
   __HAL_RCC_GPIOG_CLK_ENABLE();
@@ -107,13 +104,15 @@ int main(void)
   HAL_GPIO_ConfigPinAttributes(GPIOG, GPIO_PIN_10,
                               GPIO_PIN_NSEC | GPIO_PIN_NPRIV);
 
+  /* Project-owned handoff keeps diagnostics outside CubeMX-generated code. */
+  Secure_BootEnterNonSecure();
+
   /* USER CODE END 2 */
 
   /* Secure SysTick should rather be suspended before calling non-secure  */
   /* in order to avoid wake-up from sleep mode entered by non-secure      */
   /* The Secure SysTick shall be resumed on non-secure callable functions */
   HAL_SuspendTick();
-  secure_boot_stage = 3U;
 
   /*************** Setup and jump to non-secure *******************************/
 
@@ -143,15 +142,12 @@ static void NonSecure_Init(void)
   funcptr_NS NonSecure_ResetHandler;
 
   SCB_NS->VTOR = VTOR_TABLE_NS_START_ADDR;
-  secure_boot_stage = 4U;
 
   /* Set non-secure main stack (MSP_NS) */
   __TZ_set_MSP_NS((*(uint32_t *)VTOR_TABLE_NS_START_ADDR));
-  secure_boot_stage = 5U;
 
   /* Get non-secure reset handler */
   NonSecure_ResetHandler = (funcptr_NS)(*((uint32_t *)((VTOR_TABLE_NS_START_ADDR) + 4U)));
-  secure_boot_stage = 6U;
 
   /* Start non-secure state software application */
   NonSecure_ResetHandler();
@@ -172,12 +168,24 @@ static void NonSecure_Init(void)
   /* set all required IPs as secure privileged */
   __HAL_RCC_RIFSC_CLK_ENABLE();
 
+  /*RISUP configuration*/
+  HAL_RIF_RISC_SetSlaveSecureAttributes(RIF_RISC_PERIPH_INDEX_XSPI2 , RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_NPRIV);
+  HAL_RIF_RISC_SetSlaveSecureAttributes(RIF_RISC_PERIPH_INDEX_XSPIM , RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_NPRIV);
+
   /* RIF-Aware IPs Config */
 
   /* set up GPIO configuration */
+  /* GPIOE Non Secure Ports Clock Enable */
+  __HAL_RCC_GPIOE_CLK_ENABLE();
+  HAL_GPIO_ConfigPinAttributes(GPIOE,GPIO_PIN_5,GPIO_PIN_NSEC|GPIO_PIN_NPRIV);
+  HAL_GPIO_ConfigPinAttributes(GPIOE,GPIO_PIN_6,GPIO_PIN_NSEC|GPIO_PIN_NPRIV);
   HAL_GPIO_ConfigPinAttributes(GPIOO,GPIO_PIN_1,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
 
 /* USER CODE BEGIN RIF_Init 1 */
+
+  /* USART1 is initialized by AppliNonSecure (ST-LINK VCP, PE5/PE6). */
+  HAL_RIF_RISC_SetSlaveSecureAttributes(RIF_RISC_PERIPH_INDEX_USART1,
+                                      RIF_ATTRIBUTE_NSEC | RIF_ATTRIBUTE_NPRIV);
 
   /* Match the STM32N6570-DK isolation LRUN memory split: SRAM2 is
      non-secure, while SRAM1 and FLEXRAM remain secure. */

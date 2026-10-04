@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [ValidateSet('BuildAndTest', 'ProgramApps', 'ProgramPlan', 'ValidateBundle')]
+    [ValidateSet('BuildAndTest', 'ProgramApps', 'ProgramPlan', 'ValidateBundle', 'ReadUartLog')]
     [string]$Action
 )
 Set-StrictMode -Version Latest
@@ -32,6 +32,9 @@ try {
         }
         'ValidateBundle' {
             & "$PSScriptRoot/Test-Firmware.ps1" -Bundle $bundlePath
+        }
+        'ReadUartLog' {
+            & "$PSScriptRoot/Read-UartLog.ps1"
         }
     }
     exit 0

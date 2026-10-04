@@ -10,6 +10,8 @@ New-Item -ItemType Directory -Force $bundle | Out-Null
 # A failed rebuild must not leave an apparently complete deployment package.
 $manifestPath = Join-Path $bundle 'manifest.json'
 if (Test-Path $manifestPath) { Remove-Item -LiteralPath $manifestPath }
+& "$PSScriptRoot/Sync-HalLinks.ps1"
+& "$PSScriptRoot/Check-CubeMX-Boot.ps1"
 $projects = @(
     @{folder='FSBL'; kind='FSBL'; ld='STM32N657X0HXQ_AXISRAM2_fsbl.ld'; address='0x70000000'},
     @{folder='AppliSecure'; kind='Secure'; ld='STM32N657X0HXQ_LRUN_s.ld'; address='0x70100000'},

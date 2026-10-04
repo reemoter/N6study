@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <projectDescription>
 	<name>Ondevice_AppliNonSecure</name>
 	<comment></comment>
@@ -9,14 +9,12 @@
 		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
 			<triggers>clean,full,incremental,</triggers>
-			<arguments>
-			</arguments>
+			<arguments></arguments>
 		</buildCommand>
 		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.ScannerConfigBuilder</name>
 			<triggers>full,incremental,</triggers>
-			<arguments>
-			</arguments>
+			<arguments></arguments>
 		</buildCommand>
 	</buildSpec>
 	<natures>
@@ -91,6 +89,16 @@
 			<name>Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_tim_ex.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_tim_ex.c</locationURI>
+		</link>
+		<link>
+			<name>Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_uart.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_uart.c</locationURI>
+		</link>
+		<link>
+			<name>Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_uart_ex.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_uart_ex.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
