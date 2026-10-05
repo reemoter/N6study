@@ -72,3 +72,24 @@ PO1. The UI warning cause is still not established.
 Both scripted and CubeIDE builds passed after migration. Hardware revalidation passed on 2026-10-05: generated XSPI1 initialization, init=1, ID=0x0d10, both full 32MiB write/read patterns verified from NS, elapsed_ms=18432. The queued logger also started successfully. DMA/NPU access and cached buffer coherency remain unverified.
 
 
+
+## Optional full self-test
+
+AppliNonSecure/Core/Inc/app_config.h is project-owned and defaults
+APP_RAM_SELF_TEST to 0. Both CubeIDE and 01 Build and Verify use this setting.
+Normal startup still performs Secure PSRAM initialization and reports its
+status/ID, then prints `[RAM] ready; full self-test disabled` and immediately
+enters the usual 10ms loop. No memory sweep or test pattern writes are compiled
+into that branch. ram_test_status=5 means initialized, self-test skipped; it
+does not mean that a new physical RAM validation has passed.
+
+For diagnostics, set APP_RAM_SELF_TEST to 1 in app_config.h and rebuild/program
+with the ordinary 01 -> 02 workflow. That build runs the existing destructive
+32MiB two-pattern test on every boot. Restore 0 and rebuild/program afterwards.
+A compiler -DAPP_RAM_SELF_TEST=1 also overrides the default; if using it, match
+the setting across scripted and IDE builds to avoid different firmware behavior.
+Full self-test builds must not use PSRAM for active frame/model/heap storage
+before the test completes.
+
+Hardware validation passed on 2026-10-05: with APP_RAM_SELF_TEST=0, the user confirmed normal operation starts without the previous approximately 18-second full-RAM-test delay. This confirms the startup option behavior; no new full RAM sweep is claimed for this build.
+

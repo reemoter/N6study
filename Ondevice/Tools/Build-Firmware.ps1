@@ -12,6 +12,7 @@ $manifestPath = Join-Path $bundle 'manifest.json'
 if (Test-Path $manifestPath) { Remove-Item -LiteralPath $manifestPath }
 & "$PSScriptRoot/Sync-HalLinks.ps1"
 & "$PSScriptRoot/Sync-FreeRTOS.ps1"
+& "$PSScriptRoot/Sync-RamLayout.ps1"
 & "$PSScriptRoot/Check-CubeMX-Boot.ps1"
 $projects = @(
     @{folder='FSBL'; kind='FSBL'; ld='STM32N657X0HXQ_AXISRAM2_fsbl.ld'; address='0x70000000'},

@@ -46,6 +46,7 @@ MEMORY
 {
   ROM    (xrw)    : ORIGIN = 0x24100400,   LENGTH = 511K
   RAM    (xrw)    : ORIGIN = 0x24180000,   LENGTH = 512K
+  PSRAM (rw) : ORIGIN = 0x90000000, LENGTH = 32M
 }
 
 /* Sections */
@@ -182,6 +183,17 @@ SECTIONS
     . = ALIGN(8);
   } >RAM
 
+  /* Project-owned PSRAM: excluded from startup zeroing and binary payload. */
+  .external_ram (NOLOAD) :
+  {
+    . = ALIGN(64);
+    __external_ram_start = .;
+    KEEP(*(SORT_BY_NAME(.external_ram.*)))
+    . = ALIGN(64);
+    __external_ram_end = .;
+  } >PSRAM
+  ASSERT(SIZEOF(.external_ram) <= LENGTH(PSRAM), "PSRAM buffers exceed 32MiB")
+
   /* Remove information from the compiler libraries */
   /DISCARD/ :
   {
@@ -192,3 +204,4 @@ SECTIONS
 
   .ARM.attributes 0 : { *(.ARM.attributes) }
 }
+

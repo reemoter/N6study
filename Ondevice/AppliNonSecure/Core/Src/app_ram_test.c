@@ -1,5 +1,6 @@
 #include "main.h"
 #include "app_ram_test.h"
+#include "app_config.h"
 #include "app_log.h"
 #include "cmsis_os2.h"
 #include <stdio.h>
@@ -20,6 +21,10 @@ void AppRamTest_Run(void)
            (unsigned long)status, (unsigned long)id);
   (void)AppLog_Write(message);
   if (status != 1U) { ram_test_status = 3U; return; }
+#if APP_RAM_SELF_TEST == 0
+  ram_test_status = 5U; /* Initialized; destructive self-test deliberately skipped. */
+  (void)AppLog_Write("[RAM] ready; full self-test disabled\r\n");
+#else
   if ((SCB->CCR & SCB_CCR_DC_Msk) != 0U)
   {
     ram_test_status = 4U;
@@ -66,4 +71,5 @@ void AppRamTest_Run(void)
   snprintf(message, sizeof(message), "[RAM] PASS NS access; 32MiB; two patterns; elapsed_ms=%lu\r\n",
            (unsigned long)(HAL_GetTick() - start));
   (void)AppLog_Write(message);
+#endif
 }
