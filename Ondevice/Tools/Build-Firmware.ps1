@@ -11,6 +11,7 @@ New-Item -ItemType Directory -Force $bundle | Out-Null
 $manifestPath = Join-Path $bundle 'manifest.json'
 if (Test-Path $manifestPath) { Remove-Item -LiteralPath $manifestPath }
 & "$PSScriptRoot/Sync-HalLinks.ps1"
+& "$PSScriptRoot/Sync-FreeRTOS.ps1"
 & "$PSScriptRoot/Check-CubeMX-Boot.ps1"
 $projects = @(
     @{folder='FSBL'; kind='FSBL'; ld='STM32N657X0HXQ_AXISRAM2_fsbl.ld'; address='0x70000000'},
@@ -37,6 +38,11 @@ foreach ($project in $projects) {
         "$ProjectRoot/Drivers/STM32N6xx_HAL_Driver/Inc", "$ProjectRoot/Drivers/STM32N6xx_HAL_Driver/Inc/Legacy",
         "$ProjectRoot/Drivers/CMSIS/Device/ST/STM32N6xx/Include","$ProjectRoot/Drivers/CMSIS/Include")
     $objects = @()
+    if ($project.kind -ne 'FSBL' -and (Test-Path "$root/Core/Inc/FreeRTOSConfig.h")) {
+        $rtosRoot = "$ProjectRoot/Middlewares/Third_Party/FreeRTOS/Source"
+        $includes += @("$ProjectRoot/Middlewares/Third_Party/CMSIS/RTOS2/Include", "$rtosRoot/include", "$rtosRoot/CMSIS_RTOS_V2", "$rtosRoot/portable/GCC/ARM_CM55/secure")
+        if ($project.kind -eq 'NonSecure') { $includes += "$rtosRoot/portable/GCC/ARM_CM55/non_secure" }
+    }
     foreach ($source in $sources) {
         if (-not (Test-Path $source)) { throw "Missing source: $source" }
         $relative = [IO.Path]::GetRelativePath($ProjectRoot,$source)
@@ -77,7 +83,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect Secure import library.' }
 $nsSymbols = & (Join-Path $ToolchainBin 'arm-none-eabi-nm.exe') (Join-Path $output 'AppliNonSecure/NonSecure.elf')
 if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect Non-secure symbols.' }
 foreach ($line in $secureSymbols) {
-    if ($line -match '^([0-9a-fA-F]+)\s+\w\s+(SECURE_\w+)$') {
+    if ($line -match '^([0-9a-fA-F]+)\s+\w\s+((?:SECURE_|SecureContext_|SecureInit_)\w+)$') {
         $name = $Matches[2]; $address = $Matches[1]
         $actual = @($nsSymbols | Where-Object { $_ -match ("^" + $address + '\s+\w\s+' + [regex]::Escape($name) + '$') })
         # APIs unused by NS may be removed by --gc-sections.

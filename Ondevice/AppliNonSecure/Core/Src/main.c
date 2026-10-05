@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "app_freertos.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -89,24 +90,26 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  uint32_t heartbeat_tick = HAL_GetTick();
-  AppLog_Start();
+  /* Runtime LED and UART work is owned by FreeRTOS tasks. */
 
   /* USER CODE END 2 */
+
+  /* Init scheduler */
+  osKernelInitialize();
+  /* Call init function for freertos objects (in app_freertos.c) */
+  MX_FREERTOS_Init();
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    nonsecure_boot_counter++;
-    /* LED2 toggles only after non-secure startup and HAL_Init succeeded. */
-    uint32_t now = HAL_GetTick();
-    AppLog_Poll(now, nonsecure_boot_counter);
-    if ((uint32_t)(now - heartbeat_tick) >= 7500U)
-    {
-      heartbeat_tick = now;
-      HAL_GPIO_TogglePin(GPIOG, GPIO_PIN_10);
-    }
+    /* Reaching this loop means the scheduler did not start. */
+    Error_Handler();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -117,6 +120,28 @@ int main(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM6 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM6)
+  {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

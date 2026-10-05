@@ -75,3 +75,30 @@ USER CODE 훅·전용 Secure 진입 코드·UART HAL 링크가 유지되는 것�
 USART1/PE5/PE6의 NS 접근과 초기화·송신, ST-LINK VCP 경로가 보드에서 동작했다.
 UART 송신 오류 카운터 값과 장시간 동작은 별도 검증 범위다. 이전에 기록한 NOR 이미지는
 자동으로 바뀌지 않는다. 빌드와 ELF가 바뀌면 새 bundle을 기록한 뒤 NS 디버깅한다.
+
+## RTOS UART logger
+
+`AppLog_Init()` creates a 16-record queue and a `uartLog` task in the CubeMX
+`RTOS_QUEUES` USER CODE block. The task has 2048 bytes of stack and BelowNormal
+priority. These hooks survive regeneration; `app_log.c/h` are project-owned.
+
+The default task remains Normal priority with a 10ms release interval and the
+existing 7500ms LED interval. Once per second it copies a status snapshot into
+the queue. Formatting and UART transmission run exclusively in `uartLog`.
+`AppLog_Write(text)` copies up to 95 bytes, accepts task-context calls only,
+and returns immediately (1 accepted, 0 rejected). Add CRLF when needed.
+It does not retain the caller's buffer. Do not call it from an interrupt.
+
+A full queue drops the newest message instead of blocking the producer.
+`dropped` counts rejected records, `queue_peak` reports observed queued depth,
+and `log_stack_words` reports the UART task's minimum remaining stack in
+32-bit words. `stack_words` still refers to the default task. Heap usage now
+includes the queue and log task. The log task uses bounded HAL polling transmit
+(100ms timeout), so it still consumes CPU during transmission; DMA or interrupt
+transmit is a later improvement. Other tasks must not transmit via USART1.
+
+Validation: firmware build/package checks and CubeIDE build must pass before
+programming. Hardware acceptance: HAL/OS ticks advance by 1000 per status line,
+default task runs advance by about 100, both stacks retain margin, and
+`tx_errors=0`, `dropped=0` remain stable. Hardware validation is pending for this
+logger change.

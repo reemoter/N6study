@@ -186,6 +186,9 @@ static void NonSecure_Init(void)
   /* USART1 is initialized by AppliNonSecure (ST-LINK VCP, PE5/PE6). */
   HAL_RIF_RISC_SetSlaveSecureAttributes(RIF_RISC_PERIPH_INDEX_USART1,
                                       RIF_ATTRIBUTE_NSEC | RIF_ATTRIBUTE_NPRIV);
+  HAL_RIF_RISC_SetSlaveSecureAttributes(RIF_RISC_PERIPH_INDEX_TIM6,
+                                      RIF_ATTRIBUTE_NSEC | RIF_ATTRIBUTE_NPRIV);
+  NVIC_SetTargetState(TIM6_IRQn);
 
   /* Match the STM32N6570-DK isolation LRUN memory split: SRAM2 is
      non-secure, while SRAM1 and FLEXRAM remain secure. */

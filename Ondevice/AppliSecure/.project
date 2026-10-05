@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
 	<name>Ondevice_AppliSecure</name>
-	<comment></comment>
+	<comment>
+  </comment>
 	<projects>
 	</projects>
 	<buildSpec>
@@ -89,6 +90,26 @@
 			<name>Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_rif.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_rif.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM55/secure/secure_context.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM55/secure/secure_context.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM55/secure/secure_context_port.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM55/secure/secure_context_port.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM55/secure/secure_heap.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM55/secure/secure_heap.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM55/secure/secure_init.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM55/secure/secure_init.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

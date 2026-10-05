@@ -539,7 +539,7 @@ extern uint32_t _eNSCVeneer;
 //   <o.21> TIM3_IRQn               <0=> Secure state
 //   <o.22> TIM4_IRQn               <0=> Secure state
 //   <o.23> TIM5_IRQn               <0=> Secure state
-//   <o.24> TIM6_IRQn               <0=> Secure state
+//   <o.24> TIM6_IRQn               <1=> Non-Secure state
 //   <o.25> TIM7_IRQn               <0=> Secure state
 //   <o.26> TIM8_BRK_IRQn           <0=> Secure state
 //   <o.27> TIM8_UP_IRQn            <0=> Secure state
@@ -549,7 +549,7 @@ extern uint32_t _eNSCVeneer;
 //   <o.31> TIM10_IRQn              <0=> Secure state
 */
 
-#define NVIC_INIT_ITNS3_VAL      0x00000000
+#define NVIC_INIT_ITNS3_VAL      0x01000000
 
 /*
 //   </e>
