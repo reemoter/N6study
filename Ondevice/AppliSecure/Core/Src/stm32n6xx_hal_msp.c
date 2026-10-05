@@ -73,6 +73,9 @@ void HAL_MspInit(void)
   HAL_PWREx_EnableVddIO3();
 
   /* USER CODE BEGIN MspInit 1 */
+  /* DK PSRAM I/O bank must be 1.8V before MX_XSPI1_Init configures pins. */
+  __HAL_RCC_PWR_CLK_ENABLE();
+  HAL_PWREx_ConfigVddIORange(PWR_VDDIO2, PWR_VDDIO_RANGE_1V8);
 
   /* USER CODE END MspInit 1 */
 }

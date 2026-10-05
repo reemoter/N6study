@@ -8,7 +8,7 @@ Secure_BootEnterNonSecure calls ExtRam_SecureInit before suspending Secure
 HAL tick and entering NS. Initial clock is HCLK/4 for mode-register setup;
 mapped transfers then use HCLK (currently 100MHz), fixed read/write latency 7.
 The driver checks each register write and map operation. Debug status 10..13
-identifies the initialization stage; 1 means mapped RAM and permissions ready.
+identifies the initialization stage (10 controller contract, 12 registers/ID, 13 mapping); 1 means mapped RAM and permissions ready.
 ID is read before switching to x16 mode; invalid all-zero/all-one IDs reject init.
 
 Only XSPI1 is reset. XSPIM configuration preserves the NOR port configuration;
@@ -35,10 +35,8 @@ Debug variables: psram_init_status/id/clock_hz (Secure), ram_test_status
 ram_test_expected, ram_test_actual, ram_test_bytes (NS).
 
 The integration resides in project-owned ext_ram_secure.c/h and app_ram_test.c/h,
-with FreeRTOS startup hooks inside USER CODE blocks. HAL_XSPI_MODULE_ENABLED is
-in the Secure HAL config Header USER block. SAU region 3 is reserved and checked
-at compile time; do not allocate it in CubeMX. Current .ioc does not describe
-PSRAM pins or runtime policy: do not assign these pins to other peripherals.
+with FreeRTOS startup hooks inside USER CODE blocks. HAL_XSPI_MODULE_ENABLED is selected by generated Secure HAL configuration. SAU region 3 is reserved and checked
+at compile time; do not allocate it in CubeMX. The .ioc describes PSRAM pins and basic controller configuration; runtime mapping and access policy remain project-owned.
 CubeMX regeneration must retain the header USER block and NSC declarations.
 Sync-HalLinks restores the Secure XSPI HAL source link when building via 01.
 
@@ -50,4 +48,27 @@ and ST RIF overview https://wiki.st.com/stm32mcu/wiki/Security:Resource_Isolatio
 
 Hardware validation passed on STM32N6570-DK (2026-10-05): init=1, ID=0x0d10, both complete 32MiB write/read passes verified from NonSecure, elapsed 18432ms. This establishes CPU access with NS DCache disabled; DMA/NPU access and cached buffer coherency remain unverified. Previous working queued-logger bundle is saved
 in Build/backups/pre-psram-bundle (local ignored backup).
+
+
+## CubeMX integration (2026-10-05)
+
+The saved .ioc now describes XSPI1 in AppliSecure: Hexa Port1, PO0/NCS1,
+PP0..PP15, PO2/PO3 DQS, PO4 clock; AF9, Pull-up, Very High speed.
+Generated Secure main calls MX_XSPI1_Init once before SystemIsolation_Config.
+Generated xspi.c owns hxspi1, HCLK selection, GPIO and controller configuration.
+ExtRam_SecureInit now reuses hxspi1 without calling HAL_XSPI_Init or GPIO init.
+The Secure MSP USER block selects VDDIO2=1.8V before pin initialization;
+XSPI1 MSP USER block resets only XSPI1. Mode-register commands, memory mapping,
+RISAF11 and runtime SAU region 3 remain project-owned.
+The manually forced Secure HAL XSPI enable is superseded by generated config.
+
+Check-CubeMX-Boot validates PSRAM size/type/prescaler/refresh/boundary, PO0/NCS1,
+PO1 GPIO, generated initialization, HCLK and preserved voltage hook; it rejects
+basic initialization duplicated in the PSRAM driver or a shared XSPIM reset.
+The CubeMX warning mentioning PO1 while NCS1 is selected did not produce an
+NCS2 assignment: generated nCSOverride is NCS1 and the RAM GPIOO mask excludes
+PO1. The UI warning cause is still not established.
+
+Both scripted and CubeIDE builds passed after migration. Hardware revalidation passed on 2026-10-05: generated XSPI1 initialization, init=1, ID=0x0d10, both full 32MiB write/read patterns verified from NS, elapsed_ms=18432. The queued logger also started successfully. DMA/NPU access and cached buffer coherency remain unverified.
+
 

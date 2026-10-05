@@ -60,4 +60,27 @@ Require-Match $partition '#define\s+SAU_INIT_START0\s+\(\(uint32_t\)\s*&_sNSCVen
 Require-Match $partition '#define\s+SAU_INIT_END0\s+\(\(uint32_t\)\s*&_eNSCVeneer\)' 'NSC end must use linker veneer symbol'
 $null = Read-Source 'FSBL/Core/Src/fsbl_app.c'
 $null = Read-Source 'FSBL/Core/Src/nor_flash.c'
+if ($ioc -match '(?m)^XSPI1.MemoryType=') {
+    foreach ($setting in @('MemoryType=HAL_XSPI_MEMTYPE_APMEM_16BITS',
+                           'MemorySize=HAL_XSPI_SIZE_256MB', 'ClockPrescaler=3',
+                           'Refresh=196', 'ChipSelectBoundary=HAL_XSPI_BONDARYOF_16KB')) {
+        Require-Match $ioc ('(?m)^XSPI1\.' + [regex]::Escape($setting) + '\s*$') "PSRAM setting changed: $setting"
+    }
+    Require-Match $ioc '(?m)^PO0.Signal=XSPIM_P1_NCS1\s*$' 'PSRAM must use PO0/NCS1'
+    Require-Match $ioc '(?m)^PO1.Signal=GPIO_Output\s*$' 'LED1 PO1 must remain GPIO'
+    $ramXspi = Read-Source 'AppliSecure/Core/Src/xspi.c'
+    Require-Match $ramXspi 'nCSOverride\s*=\s*HAL_XSPI_CSSEL_OVR_NCS1' 'PSRAM CS override must be NCS1'
+    Require-Match $ramXspi 'IOPort\s*=\s*HAL_XSPIM_IOPORT_1' 'PSRAM must use Port1'
+    Require-Match $ramXspi 'Xspi1ClockSelection\s*=\s*RCC_XSPI1CLKSOURCE_HCLK' 'PSRAM must use HCLK'
+    Require-Match (Read-Source 'AppliSecure/Core/Src/main.c') 'MX_XSPI1_Init\s*\(\s*\)' 'Generated PSRAM controller init missing'
+    $ramMsp = User-Section (Read-Source 'AppliSecure/Core/Src/stm32n6xx_hal_msp.c') 'MspInit 1'
+    Require-Match $ramMsp 'HAL_PWREx_ConfigVddIORange\s*\(\s*PWR_VDDIO2\s*,\s*PWR_VDDIO_RANGE_1V8' 'PSRAM 1.8V hook lost'
+    $ramDriver = Read-Source 'AppliSecure/Core/Src/ext_ram_secure.c'
+    if ($ramDriver -match 'HAL_XSPI_Init\s*\(|HAL_GPIO_Init\s*\(') {
+        throw 'Boot guard: PSRAM driver duplicates CubeMX peripheral initialization'
+    }
+    if ($ramXspi -match '__HAL_RCC_XSPIM_FORCE_RESET') {
+        throw 'Boot guard: shared XSPIM reset would affect NOR'
+    }
+}
 Write-Host 'PASS: CubeMX boot hooks, NOR settings and SAU layout preserved.'
