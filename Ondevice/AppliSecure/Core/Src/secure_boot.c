@@ -1,5 +1,6 @@
 #include "main.h"
 #include "secure_boot.h"
+#include "ext_ram_secure.h"
 #include "partition_stm32n657xx.h"
 
 /* Fail compilation if a regenerated partition no longer supports this layout. */
@@ -13,12 +14,14 @@ _Static_assert(SAU_INIT_REGION1 == 1 && SAU_INIT_START1 == 0x24100000U &&
 _Static_assert(SAU_INIT_REGION2 == 1 && SAU_INIT_START2 == 0x40000000U &&
                SAU_INIT_END2 == 0x4FFFFFFFU && SAU_INIT_NSC2 == 0,
                "Peripheral aliases must remain non-secure");
+_Static_assert(SAU_INIT_REGION3 == 0, "SAU region 3 is reserved for project-owned PSRAM attribution");
 
 __attribute__((noreturn)) void Secure_BootEnterNonSecure(void)
 {
   const uint32_t vector_address = SRAM2_AXI_BASE_NS + 0x400U;
   const uint32_t *vectors = (const uint32_t *)vector_address;
 
+  ExtRam_SecureInit();
   HAL_SuspendTick();
   secure_boot_stage = 3U;
   SCB_NS->VTOR = vector_address;

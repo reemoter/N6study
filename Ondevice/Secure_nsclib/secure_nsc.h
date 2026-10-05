@@ -39,6 +39,8 @@ SECURE_FAULT_CB_ID     = 0x00U, /*!< System secure fault callback ID */
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 void SECURE_RegisterCallback(SECURE_CallbackIDTypeDef CallbackId, void *func);
+uint32_t SECURE_ExtRamStatus(void);
+uint32_t SECURE_ExtRamId(void);
 
 #endif /* SECURE_NSC_H */
 /* USER CODE END Non_Secure_CallLib_h */

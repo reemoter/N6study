@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "app_log.h"
+#include "app_ram_test.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -148,6 +149,7 @@ void StartDefaultTask(void *argument)
 
   SystemCoreClockUpdate();
   AppLog_Start();
+  AppRamTest_Run();
   uint32_t heartbeat_tick = HAL_GetTick();
   uint32_t wake_tick = osKernelGetTickCount();
   for(;;)

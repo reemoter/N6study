@@ -16,6 +16,8 @@
   *
   ******************************************************************************
   */
+/* PSRAM initialization is project-owned, independent of CubeMX XSPI2. */
+#define HAL_XSPI_MODULE_ENABLED
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -511,3 +513,5 @@ void assert_failed(uint8_t *file, uint32_t line);
 #endif
 
 #endif /* STM32N6xx_HAL_CONF_H */
+
+
